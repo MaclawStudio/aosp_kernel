@@ -130,19 +130,29 @@
 #elif defined(CONFIG_MACH_TASS)
 	#define PRX_THRSH_HI_PARAM		600
 	#define PRX_THRSH_LO_PARAM		450
+#elif defined(CONFIG_MACH_TASSDT)
+	#define PRX_THRSH_HI_PARAM		600
+	#define PRX_THRSH_LO_PARAM		450
+#elif defined(CONFIG_MACH_GIO) // Gio
+	#define PRX_THRSH_HI_PARAM		600
+	#define PRX_THRSH_LO_PARAM		450		
 #else			
 	#define PRX_THRSH_HI_PARAM		0x2BC // 700
 	#define PRX_THRSH_LO_PARAM		0x226 // 600
 #endif
-#define PRX_INT_TIME_PARAM		0xFC
+#define PRX_INT_TIME_PARAM		0xDB
 #define PRX_ADC_TIME_PARAM		0xFF // [HSS] Original value : 0XEE
-#define PRX_WAIT_TIME_PARAM		0xF2
+#define PRX_WAIT_TIME_PARAM		0xFF
 #define INTR_FILTER_PARAM		0x33
 #define PRX_CONFIG_PARAM		0x00
 #if defined(CONFIG_MACH_BENI) || defined(CONFIG_MACH_COOPER)
 #define PRX_PULSE_CNT_PARAM		0x0A //0x0F
 #elif defined(CONFIG_MACH_TASS)
 #define PRX_PULSE_CNT_PARAM		0x0A
+#elif defined(CONFIG_MACH_TASSDT)
+#define PRX_PULSE_CNT_PARAM		0x0A
+#elif defined(CONFIG_MACH_GIO) // Gio
+#define PRX_PULSE_CNT_PARAM		0x08
 #else
 #define PRX_PULSE_CNT_PARAM		0x08
 #endif
@@ -281,11 +291,27 @@ static void taos_work_func_prox(struct work_struct *work)
 	u16 threshold_high;
 	u16 threshold_low;
 	u8 prox_int_thresh[4];
+	u8 als_lo=0;              // RSS 110130  Low byte of ALS reading
+	u8 als_hi=0;              // RSS 110130  High byte of ALS reading
+	u16 prox_valid=1;      // RSS  110130 Used to determine if Prox is saturated by sun
+	u16 ALS_Saturated = ((256 - PRX_INT_TIME_PARAM) * 1024)-1;  // RSS 110131 Test value for saturation
 	int i;
 	/* Read VO & INT Clear */
 	
 	gprintk("[PROXIMITY] %s : \n",__func__);
-
+ 	
+ 	/* Check to see if ALS is satuated    Code added by RSS on 110131*/
+  	als_lo = i2c_smbus_read_word_data(opt_i2c_client, CMD_REG |0x14);  // RSS 110130  Read low byte of ALS Ch0 register
+  	als_hi = i2c_smbus_read_word_data(opt_i2c_client, CMD_REG |0x15);  // RSS 110130  Read high byte of ALS Ch0 register
+  	prox_valid = (als_hi << 8) | als_lo;
+	// RSS 110130  Calculate 16 bit value for ALS Ch0 and place it in prox_valid. This will be tested to make sure it is not saturated later.
+  	printk("[HSS] [%s] --- ALS_Saturated=[%d], ALS_Ch0[prox_valid]=%d\n",__func__, ALS_Saturated, prox_valid);
+  	if(prox_valid > ALS_Saturated)
+     		prox_valid = 0;     // False  saturated, must be in sun light
+  	else
+     		prox_valid = 1;   // True
+	/* End of code added by RSS 110130*/
+	
 	/* change Threshold */ 
 	adc_data = i2c_smbus_read_word_data(opt_i2c_client, CMD_REG | PRX_LO);
 	threshold_high= i2c_smbus_read_word_data(opt_i2c_client, (CMD_REG | PRX_MAXTHRESHLO) );
@@ -603,7 +629,7 @@ static int taos_opt_probe(struct i2c_client *client,
 	printk(KERN_INFO "%s\n",__FUNCTION__);
 #endif
 /* [HSS] PMIC LDO depends on each model's H/W. */
-#if defined(CONFIG_MACH_COOPER)	
+#if defined(CONFIG_MACH_COOPER) || defined(CONFIG_MACH_GIO)	
   	/* [HSS] [Cooper] PMIC LDO Change - VLCD_3.0V : ldo3 => ldo4 (REV0.2) */
 	if(board_hw_revision >= 3)
 		vreg_proximity = vreg_get(0, "ldo4");
@@ -612,9 +638,12 @@ static int taos_opt_probe(struct i2c_client *client,
 #elif defined(CONFIG_MACH_BENI) || defined(CONFIG_MACH_TASS) || defined(CONFIG_MACH_LUCAS)
         // HW_REV_00 : ldo3 HW_REV_01 : ldo4
 	vreg_proximity = vreg_get(0, "ldo4");
+#elif defined(CONFIG_MACH_TASSDT)
+  vreg_proximity = vreg_get(0, "ldo3");
 #else
 	vreg_proximity = vreg_get(0, "ldo3");
 #endif
+
 	if (IS_ERR(vreg_proximity))
 	{	
 		printk("===== [PROXIMITY] proximity IS_ERR TEST =====\n");

@@ -36,7 +36,7 @@
 #include <media/msm_camera.h>
 #include <mach/camera.h>
 
-#if defined(CONFIG_MACH_TASS)
+#if defined(CONFIG_MACH_TASS) || defined(CONFIG_MACH_TASSDT)
 #include "s5k5caff_rough.h"
 #endif//PCAM
 

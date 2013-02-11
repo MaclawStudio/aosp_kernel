@@ -1739,6 +1739,8 @@ int s5k5ccaf_sensor_init(const struct msm_camera_sensor_info *data)
 
 	if (data)
 		s5k5ccaf_ctrl->sensordata = data;
+	/*praveen: when camera opens 2nd time, GPIO is not getting power on, hence forcefuly set power on everytime*/
+	cam_pw(1);
 
 	rc = cam_hw_init();
 	if(rc < 0)

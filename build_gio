@@ -1,0 +1,3 @@
+#!/bin/sh
+make aosp_gio_defconfig
+make -j2

@@ -34,7 +34,7 @@ static unsigned char n_GPIO_KEY_LED_EN = 78;
 #else
 static unsigned char n_GPIO_KEY_LED_EN = 97;
 #endif
-#if defined(CONFIG_MACH_COOPER)
+#if defined(CONFIG_MACH_COOPER) || defined(CONFIG_MACH_GIO)
 static struct vreg *vreg_keyled;
 #endif
 
@@ -46,7 +46,7 @@ static void msm_keypad_bl_led_set(struct led_classdev *led_cdev,
 	// hsil
 	printk("[KeyLED] %s: value=%d\n", __func__, value);
 
-#if defined(CONFIG_MACH_COOPER)
+#if defined(CONFIG_MACH_COOPER) || defined(CONFIG_MACH_GIO)
 	if ( board_hw_revision >= 0x3 )
 	{
 	if (value)
@@ -84,7 +84,7 @@ static struct led_classdev msm_kp_bl_led = {
 static int msm_pmic_led_probe(struct platform_device *pdev)
 {
 	int rc, ret = 0;
-#ifndef CONFIG_MACH_COOPER
+#if !defined(CONFIG_MACH_COOPER) && !defined(CONFIG_MACH_GIO)
 	struct vreg *vreg_keyled;
 #endif
 
@@ -100,6 +100,12 @@ static int msm_pmic_led_probe(struct platform_device *pdev)
 		ret = vreg_set_level(vreg_keyled, OUT3000mV);
 	}
 #endif
+
+#if defined(CONFIG_MACH_GIO)
+	vreg_keyled = vreg_get(NULL, "ldo17");
+	ret = vreg_set_level(vreg_keyled, OUT2800mV);
+#endif
+
 	rc = led_classdev_register(&pdev->dev, &msm_kp_bl_led);
 	if (rc) {
 		dev_err(&pdev->dev, "unable to register led class driver\n");

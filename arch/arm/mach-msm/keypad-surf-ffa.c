@@ -1,5 +1,7 @@
 #if defined(CONFIG_MACH_COOPER)
 #include "keypad-cooper.c"
+#elif defined(CONFIG_MACH_GIO)
+#include "keypad-gio.c"
 #elif defined(CONFIG_MACH_BENI)
 #include "keypad-beni.c"
 #elif defined(CONFIG_MACH_TASS)

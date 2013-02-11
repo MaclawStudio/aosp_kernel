@@ -4,6 +4,8 @@
 #include "board-europa.c"
 #elif defined(CONFIG_MACH_COOPER)
 #include "board-cooper.c"
+#elif defined(CONFIG_MACH_GIO)
+#include "board-gio.c"
 #elif defined(CONFIG_MACH_BENI)
 #include "board-beni.c"
 #elif defined(CONFIG_MACH_TASS)

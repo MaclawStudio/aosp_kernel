@@ -46,6 +46,9 @@ endif
 ifeq ($(CONFIG_MACH_COOPER),y)
 obj-$(CONFIG_BATTERY_MSM)	+= cooper_battery.o
 endif
+ifeq ($(CONFIG_MACH_GIO),y)
+obj-$(CONFIG_BATTERY_MSM)	+= gio_battery.o
+endif
 ifeq ($(CONFIG_MACH_BENI),y)
 obj-$(CONFIG_BATTERY_MSM)	+= beni_battery.o
 endif
