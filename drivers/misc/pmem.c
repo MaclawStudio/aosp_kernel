@@ -1074,17 +1074,17 @@ static void bitmap_bits_set_all(uint32_t *bitp, int bit_start, int bit_end)
 
 static int
 bitmap_allocate_contiguous(uint32_t *bitp, int num_bits_to_alloc,
-		int total_bits, int spacing)
+		int total_bits, int spacing, int start_bit)
 {
 	int bit_start, last_bit, word_index;
 
 	if (num_bits_to_alloc <= 0)
 		return -1;
 
-	for (bit_start = 0; ;
-		bit_start = (last_bit +
+	for (bit_start = start_bit; ;
+		bit_start = ((last_bit +
 			(word_index << PMEM_32BIT_WORD_ORDER) + spacing - 1)
-			& ~(spacing - 1)) {
+			& ~(spacing - 1)) + start_bit) {
 		int bit_end = bit_start + num_bits_to_alloc, total_words;
 
 		if (bit_end > total_bits)
@@ -1162,7 +1162,8 @@ static int reserve_quanta(const unsigned int quanta_needed,
 	ret = bitmap_allocate_contiguous(pmem[id].allocator.bitmap.bitmap,
 		quanta_needed,
 		(pmem[id].size + pmem[id].quantum - 1) / pmem[id].quantum,
-		spacing);
+		spacing,
+		start_bit);
 
 #if PMEM_DEBUG
 	if (ret < 0)
@@ -1581,7 +1582,7 @@ static int pmem_mmap(struct file *file, struct vm_area_struct *vma)
 	down_write(&data->sem);
 	/* check this file isn't already mmaped, for submaps check this file
 	 * has never been mmaped */
-	if ((data->flags & PMEM_FLAGS_MASTERMAP) ||
+	if (/*(data->flags & PMEM_FLAGS_MASTERMAP) || */
 	    (data->flags & PMEM_FLAGS_SUBMAP) ||
 	    (data->flags & PMEM_FLAGS_UNSUBMAP)) {
 #if PMEM_DEBUG
@@ -1914,6 +1915,13 @@ int pmem_cache_maint(struct file *file, unsigned int cmd,
 	/* Called from kernel-space so file may be NULL */
 	if (!file)
 		return -EBADF;
+
+	/*
+	 * check that the vaddr passed for flushing is valid
+	 * so that you don't crash the kernel
+	 */
+	if (!pmem_addr->vaddr)
+		return -EINVAL;
 
 	data = file->private_data;
 	id = get_id(file);
