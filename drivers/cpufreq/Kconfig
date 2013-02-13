@@ -110,6 +110,15 @@ config CPU_FREQ_DEFAULT_GOV_CONSERVATIVE
 	  Be aware that not all cpufreq drivers support the conservative
 	  governor. If unsure have a look at the help section of the
 	  driver. Fallback governor will be the performance governor.
+
+config CPU_FREQ_DEFAULT_GOV_GALAXYICS
+	bool "galaxyics"
+	select CPU_FREQ_GOV_GALAXYICS
+	help
+	  Use the CPUFreq governor 'galaxyics' as default. This allows
+	  you to get a full dynamic cpu frequency capable system by simply
+	  loading your cpufreq low-level hardware driver, using the
+	  'galaxyics' governor optimized for GalaxyICS devices.
 endchoice
 
 config CPU_FREQ_GOV_PERFORMANCE
@@ -185,6 +194,19 @@ config CPU_FREQ_GOV_CONSERVATIVE
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called cpufreq_conservative.
+
+	  For details, take a look at linux/Documentation/cpu-freq.
+
+	  If in doubt, say N.
+
+config CPU_FREQ_GOV_GALAXYICS
+	tristate "'galaxyics' cpufreq governor"
+	help
+	  'galaxyics' - This driver adds a dynamic cpufreq policy governor
+	  optimized for GalaxyICS devices.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called cpufreq_galaxyics.
 
 	  For details, take a look at linux/Documentation/cpu-freq.
 
