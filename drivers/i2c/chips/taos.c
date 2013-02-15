@@ -130,9 +130,6 @@
 #elif defined(CONFIG_MACH_TASS)
 	#define PRX_THRSH_HI_PARAM		600
 	#define PRX_THRSH_LO_PARAM		450
-#elif defined(CONFIG_MACH_TASSDT)
-	#define PRX_THRSH_HI_PARAM		600
-	#define PRX_THRSH_LO_PARAM		450
 #elif defined(CONFIG_MACH_GIO) // Gio
 	#define PRX_THRSH_HI_PARAM		600
 	#define PRX_THRSH_LO_PARAM		450		
@@ -148,8 +145,6 @@
 #if defined(CONFIG_MACH_BENI) || defined(CONFIG_MACH_COOPER)
 #define PRX_PULSE_CNT_PARAM		0x0A //0x0F
 #elif defined(CONFIG_MACH_TASS)
-#define PRX_PULSE_CNT_PARAM		0x0A
-#elif defined(CONFIG_MACH_TASSDT)
 #define PRX_PULSE_CNT_PARAM		0x0A
 #elif defined(CONFIG_MACH_GIO) // Gio
 #define PRX_PULSE_CNT_PARAM		0x08
@@ -638,8 +633,6 @@ static int taos_opt_probe(struct i2c_client *client,
 #elif defined(CONFIG_MACH_BENI) || defined(CONFIG_MACH_TASS) || defined(CONFIG_MACH_LUCAS)
         // HW_REV_00 : ldo3 HW_REV_01 : ldo4
 	vreg_proximity = vreg_get(0, "ldo4");
-#elif defined(CONFIG_MACH_TASSDT)
-  vreg_proximity = vreg_get(0, "ldo3");
 #else
 	vreg_proximity = vreg_get(0, "ldo3");
 #endif
